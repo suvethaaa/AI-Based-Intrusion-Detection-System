@@ -62,6 +62,45 @@
           </table>
         </div>
       </section>
+
+      <section class="panel live">
+        <div class="results-head">
+          <div>
+            <h2>Live Network Monitor</h2>
+            <p class="muted">Uses Scapy to sample live packets and score them with the trained hybrid model.</p>
+          </div>
+          <div class="live-actions">
+            <input id="interface" type="text" placeholder="Interface optional">
+            <button id="start-live" type="button">Start Live</button>
+            <button id="start-demo" type="button" class="secondary">Demo Stream</button>
+            <button id="stop-live" type="button" class="secondary">Stop</button>
+          </div>
+        </div>
+        <div class="live-strip">
+          <span id="live-state">Stopped</span>
+          <span id="live-mode">Mode: live</span>
+          <span id="live-total">Total: 0</span>
+          <span id="live-normal">Normal: 0</span>
+          <span id="live-attack">Attack: 0</span>
+        </div>
+        <p id="live-message" class="message"></p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Source</th>
+                <th>Destination</th>
+                <th>Protocol</th>
+                <th>Hybrid</th>
+                <th>Prediction</th>
+                <th>Firewall</th>
+              </tr>
+            </thead>
+            <tbody id="live-events"></tbody>
+          </table>
+        </div>
+      </section>
     </main>
     <script src="{{ url_for('static', filename='app.js') }}"></script>
   </body>

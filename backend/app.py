@@ -6,6 +6,7 @@ from pathlib import Path
 
 from flask import Flask, jsonify, render_template, request
 
+from backend.live_monitor import LiveMonitor, block_ip_command
 from training.hybrid_model import METADATA_NAME, load_hybrid_ids
 from training.nsl_kdd import load_nsl_kdd
 
@@ -18,6 +19,7 @@ app = Flask(
     template_folder=str(ROOT / "templates"),
     static_folder=str(ROOT / "static"),
 )
+live_monitor = LiveMonitor()
 
 
 def model_ready() -> bool:
@@ -38,6 +40,12 @@ def index():
     return render_template("index.html", model_ready=model_ready(), metadata=metadata)
 
 
+def get_model():
+    model = load_hybrid_ids(MODEL_DIR)
+    live_monitor.set_model(model)
+    return model
+
+
 @app.post("/api/predict")
 def predict():
     if not model_ready():
@@ -54,7 +62,7 @@ def predict():
 
     try:
         frame = load_nsl_kdd(tmp_path)
-        model = load_hybrid_ids(MODEL_DIR)
+        model = get_model()
         predictions = model.predict_frame(frame)
         counts = predictions["prediction"].value_counts().to_dict()
         preview_columns = [
@@ -68,6 +76,42 @@ def predict():
         return jsonify({"total": len(predictions), "counts": counts, "preview": preview})
     finally:
         tmp_path.unlink(missing_ok=True)
+
+
+@app.post("/api/live/start")
+def live_start():
+    if not model_ready():
+        return jsonify({"error": "Model artifacts not found. Train the IDS first."}), 400
+    get_model()
+    payload = request.get_json(silent=True) or {}
+    ok, message = live_monitor.start(payload.get("interface"), payload.get("mode", "live"))
+    status_code = 200 if ok else 400
+    return jsonify({"message": message, "status": live_monitor.status()}), status_code
+
+
+@app.post("/api/live/stop")
+def live_stop():
+    return jsonify({"message": live_monitor.stop(), "status": live_monitor.status()})
+
+
+@app.get("/api/live/status")
+def live_status():
+    return jsonify({"status": live_monitor.status(), "events": live_monitor.recent_events()[:50]})
+
+
+@app.post("/api/block-command")
+def block_command():
+    payload = request.get_json(silent=True) or {}
+    ip_address = str(payload.get("ip", "")).split(":")[0].strip()
+    if not ip_address:
+        return jsonify({"error": "IP address is required."}), 400
+    return jsonify(
+        {
+            "ip": ip_address,
+            "command": block_ip_command(ip_address),
+            "note": "Run this command as Administrator to block the IP with Windows Firewall.",
+        }
+    )
 
 
 if __name__ == "__main__":

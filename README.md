@@ -50,3 +50,18 @@ python -m backend.app
 ```
 
 Open `http://127.0.0.1:5000` and upload an NSL-KDD formatted CSV/TXT file.
+
+## Live Monitoring
+
+The dashboard includes a live monitor panel:
+
+- `Demo Stream` continuously sends sample traffic through the trained model.
+- `Start Live` uses Scapy to capture real packets from the local machine.
+- `Command` shows a Windows Firewall command for blocking a suspicious source IP.
+
+On Windows, real packet capture requires Npcap/WinPcap and may require running the terminal as Administrator.
+Install Npcap from `https://npcap.com/`, restart the terminal, then run:
+
+```powershell
+python -m backend.app
+```
