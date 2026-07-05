@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hybrid AI IDS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="panel hero">
+        <div>
+          <p class="eyebrow">NSL-KDD Hybrid Detection</p>
+          <h1>AI Intrusion Detection System</h1>
+          <p class="summary">Random Forest attack probability and VAE anomaly reconstruction are fused into one operational risk score.</p>
+        </div>
+        <div class="status {{ 'ready' if model_ready else 'missing' }}">
+          <span>{{ 'Model Ready' if model_ready else 'Training Required' }}</span>
+        </div>
+      </section>
+
+      <section class="grid">
+        <form class="panel uploader" id="upload-form">
+          <label for="file">NSL-KDD CSV/TXT file</label>
+          <input id="file" name="file" type="file" accept=".txt,.csv" required>
+          <button type="submit">Run Detection</button>
+          <p id="message" class="message"></p>
+        </form>
+
+        <section class="panel metrics">
+          <h2>Model Settings</h2>
+          {% if metadata %}
+          <dl>
+            <div><dt>RF Weight</dt><dd>{{ metadata.rf_weight }}</dd></div>
+            <div><dt>VAE Weight</dt><dd>{{ metadata.vae_weight }}</dd></div>
+            <div><dt>Threshold</dt><dd>{{ metadata.hybrid_threshold }}</dd></div>
+            <div><dt>VAE Error Limit</dt><dd>{{ '%.6f'|format(metadata.vae_error_threshold) }}</dd></div>
+          </dl>
+          {% else %}
+          <p class="muted">Train the model to populate thresholds and evaluation metrics.</p>
+          {% endif %}
+        </section>
+      </section>
+
+      <section class="panel results" id="results" hidden>
+        <div class="results-head">
+          <h2>Prediction Results</h2>
+          <div id="counts" class="counts"></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Label</th>
+                <th>RF Prob.</th>
+                <th>VAE Error</th>
+                <th>Hybrid</th>
+                <th>Prediction</th>
+              </tr>
+            </thead>
+            <tbody id="preview"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+  </body>
+</html>
